@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="ru.firstproject.mainForm.mainForm">
+  <grid id="27dc6" binding="mainPanel" layout-manager="GridLayoutManager" row-count="6" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="37" y="54" width="900" height="464"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="e9174" class="javax.swing.JLabel" binding="testLabel">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="7" anchor="0" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="-1" height="50"/>
+          </grid>
+        </constraints>
+        <properties>
+          <focusable value="false"/>
+          <font name="Arial" size="20"/>
+          <horizontalAlignment value="11"/>
+          <text value="Mathematica portable evaluator"/>
+        </properties>
+      </component>
+      <component id="bfeed" class="javax.swing.JButton" binding="buttonEvaluate">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="3" vsize-policy="4" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
+            <minimum-size width="150" height="-1"/>
+            <preferred-size width="150" height="-1"/>
+            <maximum-size width="250" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <text value="Выполнить"/>
+        </properties>
+      </component>
+      <component id="e3c0" class="javax.swing.JTextArea" binding="resultTextArea">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="3" vsize-policy="6" hsize-policy="6" anchor="0" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="350" height="50"/>
+          </grid>
+        </constraints>
+        <properties>
+          <dropMode value="INSERT"/>
+          <editable value="false"/>
+          <lineWrap value="true"/>
+        </properties>
+      </component>
+      <component id="7f6e8" class="javax.swing.JRadioButton" binding="imgVariant">
+        <constraints>
+          <grid row="1" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Графический результат выполнения"/>
+        </properties>
+      </component>
+      <component id="1fade" class="javax.swing.JLabel" binding="resultLabel">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font name="Arial" size="16"/>
+          <text value="Результат выполнения"/>
+        </properties>
+      </component>
+      <component id="62ff1" class="javax.swing.JTextArea" binding="mainTextArea">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="50"/>
+          </grid>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="2784c" class="javax.swing.JRadioButton" binding="textVariant">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Текстовый результат выполнения"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>
