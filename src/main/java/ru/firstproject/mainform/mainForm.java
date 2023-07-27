@@ -3,6 +3,7 @@ package ru.firstproject.mainform;
 import com.wolfram.jlink.KernelLink;
 import com.wolfram.jlink.MathLinkException;
 import com.wolfram.jlink.MathLinkFactory;
+import ru.firstproject.imgform.ImgForm;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

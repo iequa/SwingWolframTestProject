@@ -1,4 +1,4 @@
-package ru.firstproject.mainform;
+package ru.firstproject.imgform;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;
