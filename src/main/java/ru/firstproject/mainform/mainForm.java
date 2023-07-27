@@ -1,12 +1,13 @@
 package ru.firstproject.mainform;
 
 import com.wolfram.jlink.KernelLink;
-import com.wolfram.jlink.MathLinkException;
 import com.wolfram.jlink.MathLinkFactory;
 import ru.firstproject.imgform.ImgForm;
+import ru.firstproject.utils.PropertiesManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.BorderUIResource;
 import java.awt.*;
@@ -36,34 +37,25 @@ public class mainForm extends JFrame implements ActionListener {
         setTitle("Project");
         frame = JFrame.getFrames()[0];
         setContentPane(mainPanel);
+        mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         resultTextArea.setBorder(new BorderUIResource.LineBorderUIResource(Color.black, 2));
+        mainTextArea.setBorder(new BorderUIResource(new BorderUIResource.LineBorderUIResource(Color.CYAN)));
         btnGroup = new ButtonGroup();
         btnGroup.add(textVariant);
         btnGroup.add(imgVariant);
         setVisible(true);
-        mainTextArea.setBorder(new BorderUIResource(new BorderUIResource.LineBorderUIResource(Color.CYAN)));
         buttonEvaluate.addActionListener(this::actionPerformed);
     }
 
-    public void setupKernel() throws MathLinkException {
-        System.out.println("Select a kernel to run");
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Select \"WolframKernel.exe\" or \"MathKernel.exe\"");
-        chooser.showOpenDialog(frame);
-        final String[] mlArgs = {
-                "-linkmode",
-                "launch",
-                "-linkname",
-                "%s".formatted(chooser.getSelectedFile().toPath())
-        };
-        kernelLink = MathLinkFactory.createKernelLink(mlArgs);
-        kernelLink.connect();
-        if (kernelLink.ready()) {
-            System.out.println("Kernel is ready.");
+    public void setupKernel() throws Exception {
+        try {
+            connectKernel();
+            kernelLink.discardAnswer();
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
         }
-        kernelLink.discardAnswer();
     }
 
     @Override
@@ -116,5 +108,66 @@ public class mainForm extends JFrame implements ActionListener {
                 }
             }
         }
+    }
+
+    private boolean connectKernel() throws IOException {
+        PropertiesManager properties = new PropertiesManager();
+        String kernelPath = null;
+        try {
+            if (properties.isEmpty()) {
+                while (kernelLink == null || !kernelLink.ready()) {
+                    kernelPath = getPathFromInfoMessage();
+                    if (kernelPath != null) {
+                        tryToConnectKernel(kernelPath);
+                    }
+                }
+            } else {
+                kernelPath = properties.getKernelPath();
+                if (!tryToConnectKernel(kernelPath)) {
+                    while (kernelLink == null || !kernelLink.ready()) {
+                        getPathFromInfoMessage();
+                    }
+                }
+            }
+            if (kernelPath != null && Files.isExecutable(Path.of(kernelPath))) {
+                properties.setProperty("kernelPath", kernelPath);
+                properties.savePropertiesToFile();
+                return true;
+            }
+        } catch (Exception e) {
+            throw new IOException("Error in kernel connection process");
+        }
+        return true;
+    }
+
+    private boolean tryToConnectKernel(String pathToKernel) {
+        final String[] mlArgs = {
+                "-linkmode",
+                "launch",
+                "-linkname",
+                "%s".formatted(pathToKernel)
+        };
+        try {
+            kernelLink = MathLinkFactory.createKernelLink(mlArgs);
+            kernelLink.connect();
+            if (kernelLink.ready()) {
+                System.out.println("Kernel is ready.");
+            }
+        } catch (Exception e) {
+            System.out.println("some error!");
+            return false;
+        }
+        return true;
+    }
+
+    private String getPathFromInfoMessage() {
+        System.out.println("Select a kernel to run");
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Select \"WolframKernel.exe\" or \"MathKernel.exe\"");
+        chooser.showOpenDialog(frame);
+        if (chooser.getSelectedFile() == null) {
+            return null;
+        }
+        return chooser.getSelectedFile().toPath().toString();
     }
 }
