@@ -72,17 +72,30 @@ public class mainForm extends JFrame implements ActionListener {
             //Не изображение
             kernelLink.clearError();
             kernelLink.clearInterrupt();
-            var resultString = "";
+            StringBuilder resultString = new StringBuilder();
             for (int i = 0; i < multilineExpr.size(); i++) {
-                resultString += i + ": " + kernelLink.evaluateToOutputForm(multilineExpr.get(i), 0) + "\n";
+                final var currentExpression = multilineExpr.get(i);
+                if (currentExpression.isEmpty()) {
+                    resultString.append("expression in line %s skipped because it's empty%n".formatted(i));
+                    continue;
+                }
+                resultString.append("%s: %s%n".formatted(
+                        i,
+                        kernelLink.evaluateToOutputForm(currentExpression, 0)
+                ));
             }
-            resultTextArea.setText(resultString);
+            resultTextArea.setText(resultString.toString());
         } else if (btnGroup.isSelected(imgVariant.getModel())) {
             //Конечный результат - изображение
-            var resultString = "";
+            StringBuilder resultString = new StringBuilder();
             if (multilineExpr.size() > 1) {
                 for (int i = 0; i < multilineExpr.size() - 1; i++) {
-                    resultString += i + ": " + kernelLink.evaluateToOutputForm(multilineExpr.get(i), 0) + "\n";
+                    final var currentExpression = multilineExpr.get(i);
+                    if (currentExpression.isEmpty()) {
+                        resultString.append("expression in line %s skipped because it's empty%n".formatted(i));
+                        continue;
+                    }
+                    resultString.append(i).append(": ").append(kernelLink.evaluateToOutputForm(multilineExpr.get(i), 0)).append("\n");
                 }
             }
             byte[] img = kernelLink.evaluateToImage(multilineExpr.get(multilineExpr.size() - 1), 0, 0);
@@ -115,7 +128,7 @@ public class mainForm extends JFrame implements ActionListener {
         String kernelPath = null;
         try {
             if (properties.isEmpty()) {
-                while (kernelLink == null || !kernelLink.ready()) {
+                while (kernelLink == null) {
                     kernelPath = getPathFromInfoMessage();
                     if (kernelPath != null) {
                         tryToConnectKernel(kernelPath);
@@ -124,7 +137,7 @@ public class mainForm extends JFrame implements ActionListener {
             } else {
                 kernelPath = properties.getKernelPath();
                 if (!tryToConnectKernel(kernelPath)) {
-                    while (kernelLink == null || !kernelLink.ready()) {
+                    while (kernelLink == null) {
                         getPathFromInfoMessage();
                     }
                 }
@@ -150,11 +163,9 @@ public class mainForm extends JFrame implements ActionListener {
         try {
             kernelLink = MathLinkFactory.createKernelLink(mlArgs);
             kernelLink.connect();
-            if (kernelLink.ready()) {
-                System.out.println("Kernel is ready.");
-            }
+            System.out.println("Kernel is ready.");
         } catch (Exception e) {
-            System.out.println("some error!");
+            System.out.printf("some error!%n%s%n", e.getMessage());
             return false;
         }
         return true;
