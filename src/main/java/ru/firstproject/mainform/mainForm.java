@@ -20,7 +20,6 @@ import java.nio.file.Path;
 public class mainForm extends JFrame implements ActionListener {
 
     Frame frame;
-    private KernelLink kernelLink;
     private JPanel mainPanel;
     private JLabel testLabel;
     private JButton buttonEvaluate;
