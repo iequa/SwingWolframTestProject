@@ -4,21 +4,72 @@ import com.wolfram.jlink.KernelLink;
 import com.wolfram.jlink.MathLinkFactory;
 import ru.firstproject.utils.PropertiesManager;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.List;
 
 public class KernelLinkWrapper {
     private static KernelLink kernelLink;
-    private String kernelPath = null;
+    private static String kernelPath = new PropertiesManager().getKernelPath();
 
-
-    public KernelLinkWrapper(String kernelPath) {
-        this.kernelPath = kernelPath;
-        tryToConnectKernel(kernelPath);
+    private KernelLinkWrapper() throws IllegalAccessException {
+        throw new IllegalAccessException();
     }
 
-    private boolean tryToConnectKernel(String pathToKernel) {
+    public static KernelLink getInstance() throws Exception {
+        if (kernelLink != null) {
+            return kernelLink;
+        }
+        if (tryToConnectKernel(kernelPath)) {
+            setupKernel();
+            return kernelLink;
+        }
+        throw new RuntimeException("can't connect to kernel");
+    }
+
+    public static String evaluateString(List<String> requests) {
+        try {
+            final var kl = getInstance();
+        } catch (Exception ex) {
+            System.out.println("Error kernel link create process");
+        }
+        kernelLink.clearError();
+        kernelLink.clearInterrupt();
+        StringBuilder resultString = new StringBuilder();
+        for (int i = 0; i < requests.size(); i++) {
+            final var currentExpression = requests.get(i);
+            if (currentExpression.isEmpty()) {
+                resultString.append("expression in line %s skipped because it's empty%n".formatted(i));
+                continue;
+            }
+            resultString.append("%s: %s%n".formatted(
+                    i,
+                    kernelLink.evaluateToOutputForm(currentExpression, 0)
+            ));
+        }
+        return resultString.toString();
+    }
+
+    public static byte[] evaluateImage(List<String> requests) {
+        try {
+            final var kl = getInstance();
+        } catch (Exception ex) {
+            System.out.println("Error kernel link create process");
+        }
+        //TODO возможно, стоит разделить выполнение простых операций и последней, генерирующей картинку
+        StringBuilder resultString = new StringBuilder();
+        if (requests.size() > 1) {
+            for (int i = 0; i < requests.size() - 1; i++) {
+                final var currentExpression = requests.get(i);
+                if (currentExpression.isEmpty()) {
+                    resultString.append("expression in line %s skipped because it's empty%n".formatted(i));
+                    continue;
+                }
+                resultString.append(i).append(": ").append(kernelLink.evaluateToOutputForm(requests.get(i), 0)).append("\n");
+            }
+        }
+        return kernelLink.evaluateToImage(requests.get(requests.size() - 1), 0, 0);
+    }
+
+    private static boolean tryToConnectKernel(String pathToKernel) {
         kernelPath = pathToKernel;
         final String[] mlArgs = {
                 "-linkmode",
@@ -29,6 +80,7 @@ public class KernelLinkWrapper {
         try {
             kernelLink = MathLinkFactory.createKernelLink(mlArgs);
             kernelLink.connect();
+            new PropertiesManager().setProperty("kernelPath", kernelPath);
             System.out.println("Kernel is ready.");
         } catch (Exception e) {
             System.out.printf("some error!%n%s%n", e.getMessage());
@@ -37,42 +89,11 @@ public class KernelLinkWrapper {
         return true;
     }
 
-    public void setupKernel() throws Exception {
+    public static void setupKernel() throws Exception {
         try {
-            connectKernel();
             kernelLink.discardAnswer();
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
-    }
-
-    private boolean connectKernel(String path) throws IOException {
-        PropertiesManager properties = new PropertiesManager();
-        String kernelPath = null;
-        try {
-            if (properties.isEmpty()) {
-                while (kernelLink == null) {
-                    kernelPath = path;
-                    if (kernelPath != null) {
-                        tryToConnectKernel(kernelPath);
-                    }
-                }
-            } else {
-                kernelPath = properties.getKernelPath();
-                if (!tryToConnectKernel(kernelPath)) {
-                    while (kernelLink == null) {
-                        getPathFromInfoMessage();
-                    }
-                }
-            }
-            if (kernelPath != null && Files.isExecutable(Path.of(kernelPath))) {
-                properties.setProperty("kernelPath", kernelPath);
-                properties.savePropertiesToFile();
-                return true;
-            }
-        } catch (Exception e) {
-            throw new IOException("Error in kernel connection process");
-        }
-        return true;
     }
 }

@@ -1,8 +1,7 @@
 package ru.firstproject.mainform;
 
-import com.wolfram.jlink.KernelLink;
-import com.wolfram.jlink.MathLinkFactory;
 import ru.firstproject.imgform.ImgForm;
+import ru.firstproject.kernelwrapper.KernelLinkWrapper;
 import ru.firstproject.utils.PropertiesManager;
 
 import javax.imageio.ImageIO;
@@ -32,7 +31,7 @@ public class mainForm extends JFrame implements ActionListener {
     private ButtonGroup btnGroup;
 
 
-    public mainForm() {
+    public mainForm() throws Exception {
         setTitle("Project");
         frame = JFrame.getFrames()[0];
         setContentPane(mainPanel);
@@ -46,14 +45,13 @@ public class mainForm extends JFrame implements ActionListener {
         btnGroup.add(imgVariant);
         setVisible(true);
         buttonEvaluate.addActionListener(this::actionPerformed);
-    }
-
-    public void setupKernel() throws Exception {
-        try {
-            connectKernel();
-            kernelLink.discardAnswer();
-        } catch (Exception e) {
-            throw new Exception(e.getMessage());
+        final var propMng = new PropertiesManager();
+        if (Boolean.parseBoolean(propMng.getIsPathNeeded()) && propMng.getKernelPath() == null) {
+            String path = null;
+            while (path == null) {
+                path = getPathFromInfoMessage();
+            }
+            new PropertiesManager().setKernelPath(path).savePropertiesToFile();
         }
     }
 
@@ -69,35 +67,11 @@ public class mainForm extends JFrame implements ActionListener {
         //В зависимости от выбранного условия отрабатывает разный evaluate
         if (btnGroup.isSelected(textVariant.getModel())) {
             //Не изображение
-            kernelLink.clearError();
-            kernelLink.clearInterrupt();
-            StringBuilder resultString = new StringBuilder();
-            for (int i = 0; i < multilineExpr.size(); i++) {
-                final var currentExpression = multilineExpr.get(i);
-                if (currentExpression.isEmpty()) {
-                    resultString.append("expression in line %s skipped because it's empty%n".formatted(i));
-                    continue;
-                }
-                resultString.append("%s: %s%n".formatted(
-                        i,
-                        kernelLink.evaluateToOutputForm(currentExpression, 0)
-                ));
-            }
-            resultTextArea.setText(resultString.toString());
+            final var result = KernelLinkWrapper.evaluateString(multilineExpr);
+            resultTextArea.setText(result);
         } else if (btnGroup.isSelected(imgVariant.getModel())) {
             //Конечный результат - изображение
-            StringBuilder resultString = new StringBuilder();
-            if (multilineExpr.size() > 1) {
-                for (int i = 0; i < multilineExpr.size() - 1; i++) {
-                    final var currentExpression = multilineExpr.get(i);
-                    if (currentExpression.isEmpty()) {
-                        resultString.append("expression in line %s skipped because it's empty%n".formatted(i));
-                        continue;
-                    }
-                    resultString.append(i).append(": ").append(kernelLink.evaluateToOutputForm(multilineExpr.get(i), 0)).append("\n");
-                }
-            }
-            byte[] img = kernelLink.evaluateToImage(multilineExpr.get(multilineExpr.size() - 1), 0, 0);
+            byte[] img = KernelLinkWrapper.evaluateImage(multilineExpr);
             System.out.println(img.length > 0 ? "Image created." : "some error");
             if (img.length > 0) {
                 final var resFileExtension = ".jpg";
@@ -109,7 +83,7 @@ public class mainForm extends JFrame implements ActionListener {
                     if (option == JFileChooser.APPROVE_OPTION) {
                         final var resultPath = Path.of(fileChooser.getSelectedFile().toPath() + resFileExtension);
                         Files.write(resultPath, img);
-                        resultTextArea.setText(resultString + "\nРезультат сохранён по адресу\n %s"
+                        resultTextArea.setText("\nРезультат сохранён по адресу\n %s"
                                 .formatted(resultPath)
                         );
                         JOptionPane.showMessageDialog(null, "File saved!");
@@ -122,55 +96,7 @@ public class mainForm extends JFrame implements ActionListener {
         }
     }
 
-    private boolean connectKernel() throws IOException {
-        PropertiesManager properties = new PropertiesManager();
-        String kernelPath = null;
-        try {
-            if (properties.isEmpty()) {
-                while (kernelLink == null) {
-                    kernelPath = getPathFromInfoMessage();
-                    if (kernelPath != null) {
-                        tryToConnectKernel(kernelPath);
-                    }
-                }
-            } else {
-                kernelPath = properties.getKernelPath();
-                if (!tryToConnectKernel(kernelPath)) {
-                    while (kernelLink == null) {
-                        getPathFromInfoMessage();
-                    }
-                }
-            }
-            if (kernelPath != null && Files.isExecutable(Path.of(kernelPath))) {
-                properties.setProperty("kernelPath", kernelPath);
-                properties.savePropertiesToFile();
-                return true;
-            }
-        } catch (Exception e) {
-            throw new IOException("Error in kernel connection process");
-        }
-        return true;
-    }
-
-    private boolean tryToConnectKernel(String pathToKernel) {
-        final String[] mlArgs = {
-                "-linkmode",
-                "launch",
-                "-linkname",
-                "%s".formatted(pathToKernel)
-        };
-        try {
-            kernelLink = MathLinkFactory.createKernelLink(mlArgs);
-            kernelLink.connect();
-            System.out.println("Kernel is ready.");
-        } catch (Exception e) {
-            System.out.printf("some error!%n%s%n", e.getMessage());
-            return false;
-        }
-        return true;
-    }
-
-    private String getPathFromInfoMessage() {
+    public String getPathFromInfoMessage() {
         System.out.println("Select a kernel to run");
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Select \"WolframKernel.exe\" or \"MathKernel.exe\"");
