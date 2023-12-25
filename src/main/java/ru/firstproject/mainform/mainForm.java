@@ -99,7 +99,7 @@ public class mainForm extends JFrame implements ActionListener {
     public String getPathFromInfoMessage() {
         System.out.println("Select a kernel to run");
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Select \"WolframKernel.exe\" or \"MathKernel.exe\"");
+        chooser.setDialogTitle("Select \"WolframKernel\" or \"MathKernel\"");
         chooser.showOpenDialog(frame);
         if (chooser.getSelectedFile() == null) {
             return null;
