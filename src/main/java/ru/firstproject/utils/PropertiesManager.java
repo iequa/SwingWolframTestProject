@@ -12,7 +12,14 @@ public class PropertiesManager {
     File propFile;
 
     public PropertiesManager() {
-        currentPath = System.getProperty("user.dir") + "\\config.cfg";
+        currentPath = System.getProperty("user.dir")
+                + "%s%s".formatted(System.getProperty("os.name").toLowerCase().contains("windows") ?
+                        "\\"
+                        :
+                        "/"
+                ,
+                "config.cfg"
+        );
         propFile = new File(currentPath);
         properties = new Properties();
         try {
