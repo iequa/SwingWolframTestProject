@@ -2,8 +2,11 @@ package ru.firstproject.kernelwrapper;
 
 import com.wolfram.jlink.KernelLink;
 import com.wolfram.jlink.MathLinkFactory;
+import ru.firstproject.utils.LibLoader;
+import ru.firstproject.utils.OSResolver;
 import ru.firstproject.utils.PropertiesManager;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class KernelLinkWrapper {
@@ -75,9 +78,16 @@ public class KernelLinkWrapper {
                 "-linkmode",
                 "launch",
                 "-linkname",
-                "%s".formatted(kernelPath)
+                "'%s'".formatted(kernelPath)
         };
+        System.out.println(Arrays.toString(mlArgs));
         try {
+            final var mathDriverPath = new StringBuilder(System.getProperty("user.dir"))
+                    .append(OSResolver.getSystemPathSeparator())
+                    .append("JLinkNativeLibrary.")
+                    .append(OSResolver.isLinux() ? "so" : "dll")
+                    .toString();
+            LibLoader.loadNativeLibrary(mathDriverPath);
             kernelLink = MathLinkFactory.createKernelLink(mlArgs);
             kernelLink.connect();
             new PropertiesManager().setProperty("kernelPath", kernelPath);
