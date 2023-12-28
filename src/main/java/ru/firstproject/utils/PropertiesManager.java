@@ -12,7 +12,14 @@ public class PropertiesManager {
     File propFile;
 
     public PropertiesManager() {
-        currentPath = System.getProperty("user.dir") + "\\config.cfg";
+        currentPath = System.getProperty("user.dir")
+                + "%s%s".formatted(System.getProperty("os.name").toLowerCase().contains("windows") ?
+                        "\\"
+                        :
+                        "/"
+                ,
+                "config.cfg"
+        );
         propFile = new File(currentPath);
         properties = new Properties();
         try {
@@ -50,5 +57,19 @@ public class PropertiesManager {
 
     public String getKernelPath() {
         return properties.getProperty("kernelPath");
+    }
+
+    public String getIsPathNeeded() {
+        return properties.getProperty("isPathNeeded");
+    }
+
+    public PropertiesManager setKernelPath(String value) {
+        properties.setProperty("kernelPath", value);
+        return this;
+    }
+
+    public PropertiesManager setIsPathNeeded(String value) {
+        properties.setProperty("isPathNeeded", value);
+        return this;
     }
 }
