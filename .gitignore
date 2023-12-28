@@ -1,1 +1,10 @@
 /config.cfg
+/JLinkNativeLibrary.dll
+/out/artifacts/SwingWolframTestProject_jar/config.cfg
+/config.cfg
+/out/artifacts/JLinkNativeLibrary_dll/JLinkNativeLibrary_dll.jar
+/.idea/artifacts/JLinkNativeLibrary_dll.xml
+/target/classes/libJLinkNativeLibrary.so
+/libJLinkNativeLibrary.so
+/target/classes/ru/firstproject/utils/LibLoader.class
+/target/classes/ru/firstproject/utils/OSResolver.class
